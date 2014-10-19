@@ -48,7 +48,7 @@ See `increment-number-at-point' for more details."
   (let ((n (or n 1)))
     (increment-number-at-point (- n))))
 
-(defun select-whole-lines ()
+(defun lines-boundaries ()
   "When no region is active, it returns the current line
 beginning and line end points. Otherwise, it returns the active
 region beginning and end points of the active region including
@@ -69,14 +69,14 @@ When no region is active, it duplicates the current
 line. Otherwise, it duplicates the whole lines included by the
 active region."
    (interactive)
-   (save-excursion (insert (apply 'buffer-substring (select-whole-lines)))))
+   (save-excursion (insert (apply 'buffer-substring (lines-boundaries)))))
 
 (defun move-lines (n)
   "Move the current lines up or down by N lines. When no region
 is active, it moves the current line. Otherwise, it moves the
 whole lines included by the active region and keep it active."
   (interactive "p")
-  (let ((lines (apply 'delete-and-extract-region (select-whole-lines))))
+  (let ((lines (apply 'delete-and-extract-region (lines-boundaries))))
     (forward-line n)
     (if (use-region-p)
 	(progn (push-mark (point))
@@ -94,7 +94,7 @@ whole lines included by the active region and keep it active."
   "Put the line at point to the kill ring."
   (interactive)
   (save-excursion
-    (apply 'kill-ring-save (select-whole-lines))))
+    (apply 'kill-ring-save (lines-boundaries))))
 
 (defun copy-symbol-at-point ()
   "Put the symbol at point string to the kill ring."

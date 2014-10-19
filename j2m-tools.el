@@ -84,11 +84,31 @@ whole lines included by the active region and keep it active."
 	       (setq deactivate-mark nil))
       (save-excursion (insert lines)))))
 
-(defun kill-current-whole-line ()
-  "Kill the current whole line."
+(defun kill-line-at-point ()
+  "Kill the whole line at point."
   (interactive)
   (kill-region (line-beginning-position)
 	       (progn (forward-line 1) (point))))
+
+(defun copy-line-at-point ()
+  "Put the line at point to the kill ring."
+  (interactive)
+  (save-excursion
+    (apply 'kill-ring-save (select-whole-lines))))
+
+(defun copy-symbol-at-point ()
+  "Put the symbol at point string to the kill ring."
+  (interactive)
+  (if (symbol-at-point)
+      (kill-new (format "%s" (symbol-at-point)))
+    (error "No symbol at point.")))
+
+(defun copy-word-at-point ()
+  "Put the current sexp to the kill ring."
+  (interactive)
+  (if (word-at-point)
+      (kill-new (format "%s" (word-at-point)))
+    (error "No word at point.")))
 
 (defvar ssh-history '()
   "History of `ssh' function argument.")

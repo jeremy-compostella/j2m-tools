@@ -76,13 +76,15 @@ active region."
 is active, it moves the current line. Otherwise, it moves the
 whole lines included by the active region and keep it active."
   (interactive "p")
-  (let ((lines (apply 'delete-and-extract-region (lines-boundaries))))
+  (let ((column (current-column))
+	(lines (apply 'delete-and-extract-region (lines-boundaries))))
     (forward-line n)
     (if (use-region-p)
 	(progn (push-mark (point))
 	       (insert lines)
 	       (setq deactivate-mark nil))
-      (save-excursion (insert lines)))))
+      (save-excursion (insert lines))
+      (move-to-column column))))
 
 (defun kill-line-at-point ()
   "Kill the whole line at point."

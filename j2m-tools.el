@@ -126,5 +126,70 @@ whole lines included by the active region and keep it active."
 	 (concat "/ssh:" login-host ":~/.bash_history"))
     (comint-read-input-ring)))
 
+(defun org-insert-block (type &optional arg)
+  (interactive)
+  (let ((src (if (use-region-p)
+		 (apply 'delete-and-extract-region (lines-boundaries))
+	       ""))
+	(start (point))
+	(end))
+    (insert (format "#+begin_%s%s" type (if arg (concat " " arg) "")))
+    (save-excursion
+      (insert "\n" src (format "#+end_%s" type))
+      (setq end (point)))
+    (org-indent-region start end)))
+
+(defvar org-src-kill-ring (make-ring 16))
+
+(defun untramp-path (path)
+  (if (tramp-tramp-file-p path)
+      (tramp-file-name-localname (tramp-dissect-file-name path))
+    path))
+
+(defun major-mode-to-name ()
+  (let ((mode major-mode))
+    (if (eq mode 'magit-status-mode)
+	"diff"
+      (replace-regexp-in-string "-mode" "" (symbol-name mode)))))
+
+(defun org-src-kill ()
+  (interactive)
+  (let ((mode (major-mode-to-name))
+	(boundaries (lines-boundaries)))
+    (ring-insert org-src-kill-ring
+		 (list mode
+		       (line-number-at-pos (car boundaries))
+		       (untramp-path (buffer-file-name))
+		       (apply 'buffer-substring-no-properties boundaries)))))
+
+(defun org-src-yank ()
+  (interactive)
+  (let* ((cur (ring-remove org-src-kill-ring))
+	 (header (format "%s%s" (nth 0 cur)
+			 (if (nth 1 cur)
+			     (format " -n %d" (nth 1 cur) "")))))
+    (org-insert-src-block header (nth 2 cur))
+    (save-excursion
+      (insert "\n")
+      (insert (nth 3 cur)))))
+
+(defun org-insert-quote-block ()
+  (interactive)
+  (org-insert-block "quote"))
+
+(defun org-insert-note-block ()
+  (interactive)
+  (org-insert-block "note"))
+
+(defun org-insert-src-block (&optional arg caption)
+  (interactive)
+  (org-insert-block "src" arg)
+  (save-excursion
+    (back-to-indentation)
+    (insert "#+caption:")
+    (when caption
+      (insert " " caption))
+    (indent-new-comment-line)))
+
 (provide 'j2m-tools)
 
